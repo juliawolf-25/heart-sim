@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Разбивающееся сердце</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .heart-container {
+            position: relative;
+            width: 200px;
+            height: 180px;
+            cursor: pointer;
+        }
+        
+        .heart {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff0844 0%, #ff4567 100%);
+            transform: rotate(45deg);
+            border-radius: 20% 0 0 20%;
+            box-shadow: 
+                0 0 30px rgba(255, 8, 68, 0.7),
+                inset -10px -10px 20px rgba(0, 0, 0, 0.2),
+                inset 10px 10px 20px rgba(255, 255, 255, 0.3);
+            animation: heartbeat 1.5s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+        
+        .heart::before,
+        .heart::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff0844 0%, #ff4567 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset -10px -10px 20px rgba(0, 0, 0, 0.2),
+                inset 10px 10px 20px rgba(255, 255, 255, 0.3);
+        }
+        
+        .heart::before {
+            top: -50%;
+            left: 0;
+        }
+        
+        .heart::after {
+            top: 0;
+            left: -50%;
+        }
+        
+        .heart-piece {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff0844 0%, #ff4567 100%);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 0 15px rgba(255, 0, 68, 0.8);
+        }
+        
+        .reset-btn {
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #ff0844 0%, #ff4567 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 0, 68, 0.4);
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .reset-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 0, 68, 0.6);
+        }
+        
+        .reset-btn.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .glow {
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 0, 68, 0.4) 0%, rgba(255, 0, 68, 0) 70%);
+            filter: blur(20px);
+            z-index: -1;
+        }
+        
+        @keyframes heartbeat {
+            0% {
+                transform: rotate(45deg) scale(1);
+            }
+            5% {
+                transform: rotate(45deg) scale(1.1);
+            }
+            10% {
+                transform: rotate(45deg) scale(1);
+            }
+            15% {
+                transform: rotate(45deg) scale(1.15);
+            }
+            50% {
+                transform: rotate(45deg) scale(1);
+            }
+            100% {
+                transform: rotate(45deg) scale(1);
+            }
+        }
+        
+        @keyframes break-piece {
+            0% {
+                transform: rotate(45deg) translate(0, 0) rotate(0);
+                opacity: 1;
+            }
+            100% {
+                transform: rotate(45deg) translate(var(--tx), var(--ty)) rotate(var(--r));
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="heart-container" id="heartContainer">
+            <div class="heart" id="heart"></div>
+            <div class="glow"></div>
+        </div>
+        <button class="reset-btn" id="resetBtn">Восстановить сердце</button>
+    </div>
+
+    <script>
+        const heartContainer = document.getElementById('heartContainer');
+        const heart = document.getElementById('heart');
+        const resetBtn = document.getElementById('resetBtn');
+        let isBroken = false;
+
+        // Обработчик клика по сердцу
+        heartContainer.addEventListener('click', function() {
+            if (isBroken) return;
+            
+            isBroken = true;
+            
+            // Создаем кусочки сердца
+            createHeartPieces();
+            
+            // Скрываем основное сердце
+            heart.style.opacity = '0';
+            
+            // Показываем кнопку сброса
+            setTimeout(() => {
+                resetBtn.classList.add('visible');
+            }, 500);
+        });
+        
+        // Функция для создания кусочков сердца
+        function createHeartPieces() {
+            const pieces = [
+                // Левый верхний кусочек
+                { x: -60, y: -60, size: 30 },
+                // Правый верхний кусочек
+                { x: 60, y: -60, size: 30 },
+                // Левый нижний кусочек
+                { x: -40, y: 40, size: 25 },
+                // Правый нижний кусочек
+                { x: 40, y: 40, size: 25 },
+                // Центральные кусочки
+                { x: -20, y: -20, size: 20 },
+                { x: 20, y: -20, size: 20 },
+                { x: -10, y: 10, size: 15 },
+                { x: 10, y: 10, size: 15 }
+            ];
+            
+            pieces.forEach((piece, index) => {
+                const pieceEl = document.createElement('div');
+                pieceEl.classList.add('heart-piece');
+                
+                // Позиционируем кусочек в центре контейнера
+                pieceEl.style.left = '50%';
+                pieceEl.style.top = '50%';
+                pieceEl.style.marginLeft = '-20px';
+                pieceEl.style.marginTop = '-20px';
+                pieceEl.style.width = `${piece.size}px`;
+                pieceEl.style.height = `${piece.size}px`;
+                
+                // Случайный оттенок красного
+                const hue = 340 + Math.random() * 20;
+                pieceEl.style.background = `linear-gradient(45deg, hsl(${hue}, 100%, 45%) 0%, hsl(${hue}, 100%, 65%) 100%)`;
+                
+                heartContainer.appendChild(pieceEl);
+                
+                // Анимация разлета
+                setTimeout(() => {
+                    const tx = piece.x + (Math.random() * 40 - 20);
+                    const ty = piece.y + (Math.random() * 40 - 20);
+                    const rotation = Math.random() * 360;
+                    
+                    pieceEl.style.setProperty('--tx', `${tx}px`);
+                    pieceEl.style.setProperty('--ty', `${ty}px`);
+                    pieceEl.style.setProperty('--r', `${rotation}deg`);
+                    pieceEl.style.animation = `break-piece 1s forwards ease-out`;
+                }, index * 50);
+            });
+        }
+        
+        // Обработчик кнопки сброса
+        resetBtn.addEventListener('click', function() {
+            // Скрываем кнопку
+            resetBtn.classList.remove('visible');
+            
+            // Удаляем все кусочки
+            document.querySelectorAll('.heart-piece').forEach(piece => {
+                piece.remove();
+            });
+            
+            // Восстанавливаем сердце
+            heart.style.opacity = '1';
+            isBroken = false;
+        });
+    </script>
+</body>
+</html>
